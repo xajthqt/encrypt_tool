@@ -8,12 +8,12 @@ options = {"py2exe":
             }  
           }  
 setup(     
-    version = "0.1.0",  
-    description = "search panda",  
-    name = "CreatLicence",  
-    options = options,  
+    version="0.1.0",
+    description="encrypt_tool",
+    name="encrypt_tool",
+    options=options,
     zipfile=None,  
-    windows=[{"script": "CreatLicense.py", "icon_resources": [(0, "bitbug_favicon.ico")] }],    
+    windows=[{"script": "encrypt_tool.py", "icon_resources": [(0, "bitbug_favicon.ico")] }],
       
     )
 #通过命令行进入到当前目录 setup.py  py2exe

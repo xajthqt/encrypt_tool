@@ -117,8 +117,13 @@ class MainWindow(wx.Frame):
         self.read_blk_size = 4 * 1024 * 1024
         self.head_size = 512
 
-        mm=wx.DisplaySize()#获取屏幕的宽度，高度
-        wx.Frame.__init__(self, parent, title=title, size=(200,100),pos=((mm[0]-660)/2,(mm[1]-360)/2),style=wx.SYSTEM_MENU|wx.MINIMIZE_BOX|wx.CAPTION|wx.CLOSE_BOX)
+        mm = wx.DisplaySize()#获取屏幕的宽度，高度
+        dlg_style = wx.SYSTEM_MENU | wx.MINIMIZE_BOX | wx.CAPTION | wx.CLOSE_BOX
+        wx.Frame.__init__(self, parent,
+                          title=title,
+                          size=(200, 100),
+                          pos=((mm[0]-660)/2, (mm[1]-360)/2),
+                          style=dlg_style)
         #状态栏
         self.Bar = self.CreateStatusBar()
         #生成密钥
