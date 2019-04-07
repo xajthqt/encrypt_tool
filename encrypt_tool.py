@@ -2,73 +2,84 @@
 # -*- coding: utf-8 -*-
 import os
 import wx
-import rsa
+# import rsa
 import time
 import uuid
 import sys
 import json
 import traceback
 import datetime
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.PublicKey import RSA
 import ConfigParser
 
 LOG_PATH = ""
 privatestr = \
 "-----BEGIN RSA PRIVATE KEY-----\n\
-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\n\
-MbpOy3IePyTujw==\n\
+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\n\
 -----END RSA PRIVATE KEY-----\n"
 
 padding = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16)
 unpading = lambda s: s[0:-ord(s[-1])] if ord(s[-1]) <= 16 else s
+
+def get_ver():
+    cf = ConfigParser.ConfigParser()
+
+    cf.read("info.conf")
+    ver = cf.get("main", "ver")
+
+    return ver
+
+
+version = get_ver()
 
 def Log(content):
     filename = os.path.join(LOG_PATH, 'run.log')
@@ -92,13 +103,13 @@ def Log(content):
         return False
 
 
-def get_ver():
-    cf = ConfigParser.ConfigParser()
+def genkeypair():
+    from Crypto.PublicKey import RSA
+    key = RSA.generate(4096)
+    pubkey = key.publickey().exportKey()
+    privkey = key.exportKey()
+    return (pubkey,privkey)
 
-    cf.read("info.conf")
-    ver = cf.get("main", "ver")
-
-    return ver
 
 class MainWindow(wx.Frame):
     def __init__(self, parent, title):
@@ -127,8 +138,7 @@ class MainWindow(wx.Frame):
         #状态栏
         self.Bar = self.CreateStatusBar()
         #生成密钥
-        #(pubkey, privkey) = rsa.newkeys(1024) 
-
+        self.ib = wx.IconBundle()
         self.ib = wx.IconBundle()
         self.ib.AddIconFromFile("bitbug_favicon.ico", wx.BITMAP_TYPE_ANY)
         self.SetIcons(self.ib)
@@ -198,23 +208,6 @@ class MainWindow(wx.Frame):
                 self.msg_box(u"文件无效，请重新选择")
                 return
 
-            # output = self.AES_cryption(fc)
-
-            # info = self.AES_decryption(fc)
-            # if info.find(",,,") >= 0:
-            #     reg_info = info.split(",,,")
-            #     reg = dict()
-            #     reg["sys_id"] = reg_info[0]
-            #     reg["contract"] = reg_info[1]
-            #     reg["company"] = reg_info[2]
-            #     reg["host_num"] = reg_info[3]
-            # else:
-            #     try:
-            #         reg = json.loads(info)
-            #     except:
-            #         print traceback.format_exc()
-            #
-            # file_dlg.Destroy()
             self.SetCtrlVal()
 
     def SetCtrlVal(self, reg=None):
@@ -224,34 +217,9 @@ class MainWindow(wx.Frame):
         self.WorkPath.SetValue(self.file_full_path)
         self.TexPassword.SetValue("111111")
         self.TexConfirm.SetValue("111111")
-        # self.TexContract.SetValue(reg.get("contract", ""))
-        # self.TexConfirm.SetValue(reg.get("company", ""))
-        # self.Hosts.SetValue(reg.get("host_num", ""))
-        # self.clientNum.SetValue(reg.get("host_num", ""))
-        # self.vdiNum.SetValue(reg.get("vdi_num", "") if reg.get("vdi_num", "") else reg.get("host_num", ""))
-        # self.TexEffective.SetValue(reg.get("effect", ""))
 
     def ClearCtrlVal(self):
         self.SetCtrlVal(None)
-
-    # def __get_excel_path(self):
-    #     fn = "license交付记录.xlsx".decode("UTF-8")
-    #     default_path = os.path.join(self.dirname, fn)
-    #     try:
-    #         lic_dir = self.dirname.strip("\\")
-    #         par_path, dirname = os.path.split(lic_dir)
-    #         while dirname:
-    #             if dirname == "license交付记录":
-    #                 excel_path = os.path.join(par_path, dirname, fn)
-    #                 if os.path.exists(excel_path):
-    #                     return excel_path
-    #                 else:
-    #                     return default_path
-    #
-    #
-    #     except:
-    #         Log("__get_excel_path except: %s" % traceback.format_exc())
-    #         return default_path
 
     def save_data_to_excel(self, data):
         '''
@@ -265,38 +233,6 @@ class MainWindow(wx.Frame):
         dl = wx.MessageDialog(self, text, box_title, wx.OK)
         dl.ShowModal()
         dl.Destroy()
-
-    def LoadLicense(self, crypto):
-        try:
-            privkey = rsa.PrivateKey.load_pkcs1(privatestr)
-            # message = ""
-
-            try:
-                message = rsa.decrypt(crypto, privkey)
-            except:
-                Log("LoadLicense except: %s" % traceback.format_exc())
-                self.msg_box(u"无效的加密文件")
-                message = ""
-
-            if not message:
-                return ""
-
-            try:
-                retval = json.loads(message)
-            except:
-                Log("LoadLicense except: %s" % traceback.format_exc())
-                self.msg_box(u"无效的加密文件")
-                retval = {}
-            if not retval:
-                Log("message[%s] is not valid" % message)
-                self.msg_box(u"无效的加密文件")
-
-            Log("LoadLicense, license = %s" % retval)
-            return retval
-        except:
-            Log("Check_license() exeption3: %s" % (traceback.format_exc()))
-            self.msg_box(u"处理文件出现异常")
-            return {}
 
     def btnGOClick(self, e):
         mes = self.TexPassword.GetValue()+self.TexConfirm.GetValue()+self.WorkPath.GetValue()
@@ -338,6 +274,38 @@ class MainWindow(wx.Frame):
             self.msg_box(u"处理文件出现异常: %s" % traceback.format_exc())
             return
 
+    def LoadLicense(self, crypto):
+        try:
+            rsakey = RSA.importKey(privatestr)
+            rsa_oaep = PKCS1_OAEP.new(rsakey)
+
+            try:
+                message = rsa_oaep.decrypt(crypto)
+            except:
+                Log("LoadLicense except: %s" % traceback.format_exc())
+                self.msg_box(u"无效的加密文件")
+                message = ""
+
+            if not message:
+                return ""
+
+            try:
+                retval = json.loads(message)
+            except:
+                Log("LoadLicense except: %s" % traceback.format_exc())
+                self.msg_box(u"无效的加密文件")
+                retval = {}
+            if not retval:
+                Log("message[%s] is not valid" % message)
+                self.msg_box(u"无效的加密文件")
+
+            Log("LoadLicense, license = %s" % retval)
+            return retval
+        except:
+            Log("Check_license() exeption3: %s" % (traceback.format_exc()))
+            self.msg_box(u"处理文件出现异常")
+            return {}
+
     def encrypt_file(self, infile, outfile, password):
         exe_path = os.getcwd()
         Log("exe_path=%s" % exe_path)
@@ -347,7 +315,10 @@ class MainWindow(wx.Frame):
         file_size = os.path.getsize(infile)
 
         ver = get_ver()
-        pubkey = rsa.PublicKey.load_pkcs1(p)
+
+        rsakey = RSA.importKey(p)
+        rsa = PKCS1_OAEP.new(rsakey)
+
         lic_uuid = str(uuid.uuid1())
 
         data = dict(password=password,
@@ -357,7 +328,7 @@ class MainWindow(wx.Frame):
                     file_size=file_size
                     )
 
-        crpyto = rsa.encrypt(json.dumps(data), pubkey)
+        crpyto = rsa.encrypt(json.dumps(data))
         with open(outfile, 'wb') as outfp:
             outfp.write(crpyto)
 
@@ -514,7 +485,7 @@ class MainWindow(wx.Frame):
 
 if __name__ == "__main__":
     app = wx.App(False)
-    version = get_ver()
+
     title = u"文件加密解密器%s" % version
     frame = MainWindow(None, title)
     # frame.Centre()
